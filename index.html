@@ -1,0 +1,1765 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>METRO FC PRO - Data Hub</title>
+    <!-- Use Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Barcode Scanner CDN -->
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+
+    <!-- Link to external CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Global Loader -->
+    <div id="loader" class="loading-overlay">
+        <div class="spinner"></div>
+        <p style="margin-top: 24px; font-weight: 600; letter-spacing: 3px; font-size: 12px; color: var(--slp-cyan);">PROCESSING DATA</p>
+    </div>
+
+    <!-- =============== 1. LOGIN SCREEN =============== -->
+    <section id="screen-login" class="container animate-in">
+        <div style="width: 100%; max-width: 400px; position: relative;">
+            <div style="position: absolute; top: -100px; left: 50%; transform: translateX(-50%); width: 200px; height: 200px; background: var(--slp-cyan); filter: blur(120px); opacity: 0.1; z-index: -1;"></div>
+            
+            <h1 class="slp-heading">METRO FC PRO<br><span>DATA HUB V2</span></h1>
+            
+            <form id="form-login" onsubmit="handleLogin(event)">
+                <div class="input-group-slp">
+                    <i>👤</i>
+                    <input type="text" id="username" placeholder="Employee ID" required>
+                </div>
+                <div class="input-group-slp">
+                    <i>🔒</i>
+                    <input type="password" id="password" placeholder="Password" required>
+                </div>
+                <button type="submit" class="btn-access">AUTHENTICATE</button>
+            </form>
+            <p style="margin-top: 35px; text-align: center; font-size: 12px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px;">Authorized Use Only</p>
+        </div>
+    </section>
+
+    <!-- =============== 2. DASHBOARD =============== -->
+    <section id="screen-main" class="container hidden">
+        <header>
+            <div>
+                <p style="font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;">Verified Profile</p>
+                <h2 id="display-user" style="font-size: 22px;">Team Metro</h2>
+            </div>
+            <div onclick="logout()" style="width: 48px; height: 48px; border-radius: 14px; background: rgba(255, 59, 59, 0.1); color: var(--alert-red); display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255, 59, 59, 0.2); cursor: pointer; transition: all 0.3s;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+            </div>
+        </header>
+
+        <div class="menu-grid animate-in">
+            <div class="menu-card glass" onclick="showModule('screen-inward')">
+                <i>📥</i>
+                <h3>Inward</h3>
+                <p style="font-size: 11px; color: var(--text-dim);">Inbound Logistics</p>
+            </div>
+            <div class="menu-card glass" onclick="showModule('screen-outward')">
+                <i>🚐</i>
+                <h3>Outward</h3>
+                <p style="font-size: 11px; color: var(--text-dim);">Distribution</p>
+            </div>
+            <div class="menu-card glass" onclick="showModule('screen-audits')">
+                <i>🔍</i>
+                <h3>Audits</h3>
+                <p style="font-size: 11px; color: var(--text-dim);">Quality Checks</p>
+            </div>
+            <div class="menu-card glass" onclick="showModule('screen-register')">
+                <i>📋</i>
+                <h3>Registers</h3>
+                <p style="font-size: 11px; color: var(--text-dim);">Validations</p>
+            </div>
+            
+            <div class="menu-card glass" style="grid-column: span 2; background: linear-gradient(135deg, rgba(0,251,255,0.05) 0%, rgba(0,59,145,0.1) 100%);" onclick="showModule('screen-performance')">
+                <div style="display: flex; align-items: center; gap: 20px; text-align: left; padding: 5px;">
+                    <div style="width: 50px; height: 50px; border-radius: 50%; background: rgba(0,251,255,0.1); display: flex; align-items: center; justify-content: center;">
+                        <i style="margin:0; font-size: 24px; color: var(--slp-cyan);">📊</i>
+                    </div>
+                    <div>
+                        <h3 style="font-size: 18px;">Performance KPIs</h3>
+                        <p style="font-size: 12px; color: var(--text-dim);">Real-time metrics & analytics</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- =============== 3. SUBMENUS =============== -->
+    
+    <!-- INWARD SUBMENU -->
+    <section id="screen-inward" class="container hidden">
+        <div class="nav-back" onclick="showModule('screen-main')">
+            <svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Back to Dashboard
+        </div>
+        <h2 class="section-title"><i>📥</i> Inbound Module</h2>
+        <div class="sub-menu-list animate-in">
+            <div class="list-item glass" onclick="showForm('form-inward-vehicle')">
+                <div class="list-info"><div class="list-icon">🚛</div><div><strong>Vehicle Inbound</strong><div style="font-size:11px;color:#9ba1a6;margin-top:3px;">Log truck arrivals</div></div></div><span>→</span>
+            </div>
+            <div class="list-item glass" onclick="showForm('form-inward-material')">
+                <div class="list-info"><div class="list-icon">📦</div><div><strong>Material Inward</strong><div style="font-size:11px;color:#9ba1a6;margin-top:3px;">Process POs & ASNs</div></div></div><span>→</span>
+            </div>
+            <div class="list-item glass" onclick="showForm('form-inward-diesel')">
+                <div class="list-info"><div class="list-icon">⛽</div><div><strong>Diesel/Water</strong><div style="font-size:11px;color:#9ba1a6;margin-top:3px;">Track utility inflows</div></div></div><span>→</span>
+            </div>
+            <div class="list-item glass" onclick="showForm('form-inward-imprest')">
+                <div class="list-info"><div class="list-icon">🧾</div><div><strong>Imprest Inward</strong><div style="font-size:11px;color:#9ba1a6;margin-top:3px;">Log payment receipts</div></div></div><span>→</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- OUTWARD SUBMENU -->
+    <section id="screen-outward" class="container hidden">
+        <div class="nav-back" onclick="showModule('screen-main')">
+            <svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Back
+        </div>
+        <h2 class="section-title"><i>🚐</i> Outward Module</h2>
+
+        <div class="sub-menu-list animate-in">
+            <div class="list-item glass" onclick="showForm('form-outward-rtv')">
+                <div class="list-info"><div class="list-icon">↩️</div><div><strong>Return to Vendor</strong><div style="font-size:11px;color:#9ba1a6;margin-top:3px;">Process vendor limits</div></div></div><span>→</span>
+            </div>
+            <div class="list-item glass" onclick="showForm('form-outward-sto')">
+                <div class="list-info"><div class="list-icon">🔄</div><div><strong>STO's</strong><div style="font-size:11px;color:#9ba1a6;margin-top:3px;">Stock Transfer Orders</div></div></div><span>→</span>
+            </div>
+            <div class="list-item glass" onclick="showForm('form-outward-sales')">
+                <div class="list-info"><div class="list-icon">🤝</div><div><strong>Second Sales</strong><div style="font-size:11px;color:#9ba1a6;margin-top:3px;">Secondary Outbound</div></div></div><span>→</span>
+            </div>
+            <div class="list-item glass" onclick="showForm('form-outward-jiomart')">
+                <div class="list-info"><div class="list-icon">🛒</div><div><strong>Jiomart Outward</strong><div style="font-size:11px;color:#9ba1a6;margin-top:3px;">Jiomart dispatches</div></div></div><span>→</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- AUDITS SUBMENU -->
+    <section id="screen-audits" class="container hidden">
+        <div class="nav-back" onclick="showModule('screen-main')">
+            <svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Back
+        </div>
+        <h2 class="section-title" style="font-size: 26px; font-weight: 800; margin-bottom: 24px;">Audits Module</h2>
+        <div class="sub-menu-list animate-in">
+            <div class="list-item glass" onclick="showForm('form-audit-dock')" style="padding: 18px;">
+                <div class="list-info">
+                    <div class="list-icon" style="background:var(--bg-dark); border-radius:12px; font-size: 20px;">🚪</div>
+                    <div><strong style="font-size: 16px;">Dock Door Audit</strong><div style="font-size:13px;color:#9ba1a6;margin-top:2px;">Direct dispatch verification</div></div>
+                </div>
+            </div>
+            <div class="list-item glass" onclick="showForm('form-audit-pack')" style="padding: 18px;">
+                <div class="list-info">
+                    <div class="list-icon" style="background:var(--bg-dark); border-radius:12px; font-size: 20px;">📦</div>
+                    <div><strong style="font-size: 16px;">Packing Station Audit</strong><div style="font-size:13px;color:#9ba1a6;margin-top:2px;">Point-of-pack QA</div></div>
+                </div>
+            </div>
+            <div class="list-item glass" onclick="showForm('form-audit-bin')" style="padding: 18px;">
+                <div class="list-info">
+                    <div class="list-icon" style="background:var(--bg-dark); border-radius:12px; font-size: 20px;">🗑️</div>
+                    <div><strong style="font-size: 16px;">Bin Audit</strong><div style="font-size:13px;color:#9ba1a6;margin-top:2px;">Location-based stock check</div></div>
+                </div>
+            </div>
+            <div class="list-item glass" onclick="showForm('form-audit-floor')" style="padding: 18px;">
+                <div class="list-info">
+                    <div class="list-icon" style="background:var(--bg-dark); border-radius:12px; font-size: 20px;">🚶</div>
+                    <div><strong style="font-size: 16px;">Floor Walk Audit</strong><div style="font-size:13px;color:#9ba1a6;margin-top:2px;">Operational & floor checks</div></div>
+                </div>
+            </div>
+            <div class="list-item glass" onclick="showForm('form-audit-km')" style="padding: 18px;">
+                <div class="list-info">
+                    <div class="list-icon" style="background:var(--bg-dark); border-radius:12px; font-size: 20px;">🛣️</div>
+                    <div><strong style="font-size: 16px;">Km Validation Entry</strong><div style="font-size:13px;color:#9ba1a6;margin-top:2px;">Mileage verification</div></div>
+                </div>
+            </div>
+            <div class="list-item glass" onclick="showForm('form-audit-trip')" style="padding: 18px;">
+                <div class="list-info">
+                    <div class="list-icon" style="background:var(--bg-dark); border-radius:12px; font-size: 20px;">🗺️</div>
+                    <div><strong style="font-size: 16px;">Trip Validation</strong><div style="font-size:13px;color:#9ba1a6;margin-top:2px;">Route & delivery completion</div></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- REGISTERS SUBMENU -->
+    <section id="screen-register" class="container hidden">
+        <div class="nav-back" onclick="showModule('screen-main')">
+            <svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Back
+        </div>
+        <h2 class="section-title"><i>📋</i> Register Validation</h2>
+        <div class="sub-menu-list animate-in">
+            <div class="list-item glass" onclick="showForm('form-register-duplicate')">
+                <div class="list-info"><div class="list-icon">🗂️</div><div><strong>Duplicate Register</strong><div style="font-size:11px;color:#9ba1a6;margin-top:3px;">Log duplicate invoice entries</div></div></div><span>→</span>
+            </div>
+            <div class="list-item glass" onclick="showForm('form-register-cn')">
+                <div class="list-info"><div class="list-icon">💳</div><div><strong>CN Register</strong><div style="font-size:11px;color:#9ba1a6;margin-top:3px;">Credit note tracking</div></div></div><span>→</span>
+            </div>
+            <div class="list-item glass" onclick="showForm('form-register-dispatch')">
+                <div class="list-info"><div class="list-icon">📈</div><div><strong>Daily Dispatch & Delivery Summary</strong><div style="font-size:11px;color:#9ba1a6;margin-top:3px;">End of day reporting</div></div></div><span>→</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- PERFORMANCE KPI SCREEN -->
+    <section id="screen-performance" class="container hidden">
+        <div class="nav-back" onclick="showModule('screen-main')">
+            <svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Dashboard
+        </div>
+        <h2 class="section-title"><i>📊</i> Your Performance</h2>
+        
+        <div style="margin-bottom: 20px; padding: 15px;" class="animate-in glass">
+            <label style="font-size: 11px; color: var(--slp-cyan); display:block; margin-bottom: 5px;">Date Filter</label>
+            <select id="kpi_date_filter" class="form-control" style="background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); color: #fff; appearance: auto;" onchange="handleDateFilterChange()">
+                <option value="today" selected>Today</option>
+                <option value="yesterday">Yesterday</option>
+                <option value="7days">Last 7 Days</option>
+                <option value="15days">Last 15 Days</option>
+                <option value="custom">Custom Range...</option>
+            </select>
+            
+            <div id="kpi_custom_dates" class="grid-2 hidden" style="margin-top: 15px;">
+                <div>
+                    <label style="font-size:10px;">Start Date</label>
+                    <input type="date" id="kpi_start_date" class="form-control" onchange="fetchPerformanceDashboard()">
+                </div>
+                <div>
+                    <label style="font-size:10px;">End Date</label>
+                    <input type="date" id="kpi_end_date" class="form-control" onchange="fetchPerformanceDashboard()">
+                </div>
+            </div>
+        </div>
+
+        <div class="animate-in delay-1">
+            <div class="stat-card">
+                <div class="stat-label">Total Submissions (Selected)</div>
+                <div class="stat-value" id="kpi_subs">--</div>
+            </div>
+            
+            <div class="grid-2">
+                <div class="stat-card">
+                    <div class="stat-label">Exceptions</div>
+                    <div class="stat-value" id="kpi_exceptions" style="color: var(--alert-red);">--</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Audits</div>
+                    <div class="stat-value" id="kpi_audits" style="color: var(--success-green);">--</div>
+                </div>
+            </div>
+
+            <h3 style="margin: 24px 0 16px 0; font-size: 18px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px;">📥 Inward Receipts</h3>
+            <div class="stats-grid" id="inward-stats" style="margin-bottom: 24px;">
+                <div class="stat-card glass" style="background: rgba(0,0,0,0.5); border: 1px solid rgba(0, 255, 234, 0.2);">
+                    <div class="stat-value" id="in_vehicles" style="color: var(--slp-cyan); font-size: 24px;">--</div>
+                    <div class="stat-label" style="font-size: 11px;">Vehicles Inwarded</div>
+                </div>
+                <div class="stat-card glass" style="background: rgba(0,0,0,0.5); border: 1px solid rgba(255, 179, 0, 0.2);">
+                    <div class="stat-value" id="in_value" style="color: var(--metro-yellow); font-size: 24px;">₹ --</div>
+                    <div class="stat-label" style="font-size: 11px;">Total Inward Value</div>
+                </div>
+            </div>
+
+            <h3 style="margin: 24px 0 16px 0; font-size: 18px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px;">🚐 Outward Dispatches</h3>
+            <div class="stats-grid" id="outward-stats" style="margin-bottom: 24px;">
+                <div class="stat-card glass" style="background: rgba(0,0,0,0.5); border: 1px solid rgba(0, 255, 234, 0.2);">
+                    <div class="stat-value" id="out_vehicles" style="color: var(--slp-cyan); font-size: 24px;">--</div>
+                    <div class="stat-label" style="font-size: 11px;">Vehicles Outwarded</div>
+                </div>
+                <div class="stat-card glass" style="background: rgba(0,0,0,0.5); border: 1px solid rgba(0, 255, 234, 0.2);">
+                    <div class="stat-value" id="out_trips" style="color: var(--slp-cyan); font-size: 24px;">--</div>
+                    <div class="stat-label" style="font-size: 11px;">Total Trips</div>
+                </div>
+                <div class="stat-card glass" style="background: rgba(0,0,0,0.5); border: 1px solid rgba(255, 179, 0, 0.2); width: 100%; grid-column: span 2;">
+                    <div class="stat-value" id="out_value" style="color: var(--metro-yellow); font-size: 24px;">₹ --</div>
+                    <div class="stat-label" style="font-size: 11px;">Total Value Outwarded</div>
+                </div>
+            </div>
+
+            <h3 style="margin: 24px 0 16px 0; font-size: 18px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px;">👑 LPA-Wise Matrix (Admin)</h3>
+            <div style="overflow-x: auto; margin-bottom: 24px;">
+                <table style="width: 100%; border-collapse: collapse; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); color: var(--text-main); font-size: 12px; text-align: left; min-width: 500px;">
+                    <thead>
+                        <tr style="background: rgba(255,255,255,0.05); color: var(--metro-yellow); border-bottom: 1px solid rgba(255,255,255,0.1);">
+                            <th style="padding: 10px;">LPA Name</th>
+                            <th style="padding: 10px;">Submissions</th>
+                            <th style="padding: 10px; color: var(--alert-red);">Exceptions</th>
+                            <th style="padding: 10px; color: var(--alert-red);">Exc Value (₹)</th>
+                            <th style="padding: 10px; color: var(--success-green);">Audits</th>
+                            <th style="padding: 10px; color: var(--success-green);">Aud Value (₹)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="lpa_matrix_body">
+                        <tr><td colspan="6" style="padding: 10px; text-align: center;">Loading Matrix...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 style="margin: 24px 0 16px 0; font-size: 18px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px;">👑 Segment-Wise Matrix (Admin)</h3>
+            <div style="overflow-x: auto; margin-bottom: 24px;">
+                <table style="width: 100%; border-collapse: collapse; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); color: var(--text-main); font-size: 12px; text-align: left; min-width: 500px;">
+                    <thead>
+                        <tr style="background: rgba(255,255,255,0.05); color: var(--slp-cyan); border-bottom: 1px solid rgba(255,255,255,0.1);">
+                            <th style="padding: 10px;">Segment Name</th>
+                            <th style="padding: 10px;">Submissions</th>
+                            <th style="padding: 10px; color: var(--alert-red);">Exceptions</th>
+                            <th style="padding: 10px; color: var(--alert-red);">Exc Value (₹)</th>
+                            <th style="padding: 10px; color: var(--success-green);">Audits</th>
+                            <th style="padding: 10px; color: var(--success-green);">Aud Value (₹)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="seg_matrix_body">
+                        <tr><td colspan="6" style="padding: 10px; text-align: center;">Loading Matrix...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- =============== 4. ACTUAL FORMS =============== -->
+
+    <!-- Form: Vehicle Inbound -->
+    <section id="form-inward-vehicle" class="container hidden">
+        <div class="nav-back" onclick="showModule('screen-inward')">← Back to Inward</div>
+        <h2 style="margin-bottom: 24px;">🚛 Vehicle Inbound</h2>
+        <form class="glass form-box animate-in" onsubmit="submitForm(event, 'Vehicle_Inbound')">
+            
+            <details class="section-accordion" open>
+                <summary>Section 1: Basic Details</summary>
+                <div class="accordion-content">
+                    <div class="grid-2">
+                        <div class="input-group">
+                            <label>LPA Name</label>
+                            <input type="text" id="vehin_lpa_name" name="lpa_name" class="form-control" readonly required style="color:var(--slp-cyan);">
+                        </div>
+                        <div class="input-group">
+                            <label>Inward Number (Unique ID)</label>
+                            <input type="text" name="inward_number" class="form-control" placeholder="e.g. VIN-123456" required>
+                        </div>
+                    </div>
+                    <div class="grid-2">
+                        <div class="input-group">
+                            <label>Date</label>
+                            <input type="date" id="vehin_date" name="date" class="form-control" required>
+                        </div>
+                        <div class="input-group">
+                            <label>Unloading Starting Time</label>
+                            <input type="time" id="vehin_start_time" name="start_time" class="form-control" required>
+                        </div>
+                    </div>
+                </div>
+            </details>
+
+            <details class="section-accordion">
+                <summary>Section 2: Vendor & Vehicle Details</summary>
+                <div class="accordion-content">
+                    <div class="input-group">
+                        <label>Vendor Name</label>
+                        <input type="text" name="vendor_name" class="form-control" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Vehicle No.</label>
+                        <input type="text" name="vehicle_no" class="form-control" placeholder="MH-12-XX-0000" required style="text-transform: uppercase;">
+                    </div>
+                    <div class="input-group" style="position: relative;">
+                        <label>Invoice Number</label>
+                        <input type="text" id="vin_invoice" name="invoice_no" class="form-control" required>
+                        <button type="button" class="scan-btn" onclick="alert('Device Camera scanning active!')" style="background:var(--metro-yellow); border:none; border-radius:8px;">📷 Scan</button>
+                    </div>
+                </div>
+            </details>
+
+            <details class="section-accordion">
+                <summary>Section 3: Invoice Summary</summary>
+                <div class="accordion-content">
+                    <div class="grid-2">
+                        <div class="input-group">
+                            <label>Total HU’s Qty in Invoice</label>
+                            <input type="number" id="vin_inv_hu" name="inv_hu_qty" class="form-control" required oninput="calcVehicleInbound()">
+                        </div>
+                        <div class="input-group">
+                            <label>Total Invoice Qty Articles</label>
+                            <input type="number" name="inv_article_qty" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>Total Invoice Value (₹)</label>
+                        <input type="number" step="0.01" name="inv_value" class="form-control" required>
+                    </div>
+                </div>
+            </details>
+
+            <details class="section-accordion">
+                <summary>Section 4: Received Summary</summary>
+                <div class="accordion-content">
+                    <div class="input-group">
+                        <label>Total HU’s Received</label>
+                        <input type="number" id="vin_rec_hu" name="rec_hu_qty" class="form-control" required oninput="calcVehicleInbound()">
+                    </div>
+                    <div class="grid-2">
+                        <div class="input-group">
+                            <label>Total HU’s Short</label>
+                            <input type="number" id="vin_short_hu" name="short_hu" class="form-control" readonly style="color:var(--alert-red);">
+                        </div>
+                        <div class="input-group">
+                            <label>Total HU’s Excess</label>
+                            <input type="number" id="vin_excess_hu" name="excess_hu" class="form-control" readonly style="color:var(--metro-yellow);">
+                        </div>
+                    </div>
+                    <div class="grid-2">
+                        <div class="input-group">
+                            <label>Total Damage HU’s</label>
+                            <input type="number" name="damage_hu" class="form-control" required>
+                        </div>
+                        <div class="input-group">
+                            <label>Nearly Expired / Expired HU’s</label>
+                            <input type="number" name="expired_hu" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>EAN Mismatch HU’s Qty</label>
+                        <input type="number" name="ean_mismatch_hu" class="form-control" required>
+                    </div>
+                </div>
+            </details>
+
+            <details class="section-accordion">
+                <summary>Section 5: Value Calculations</summary>
+                <div class="accordion-content">
+                    <div class="grid-2">
+                        <div class="input-group">
+                            <label>HU’s Short Value (₹)</label>
+                            <input type="number" step="0.01" name="short_value" class="form-control" required>
+                        </div>
+                        <div class="input-group">
+                            <label>Total HU’s Excess Value (₹)</label>
+                            <input type="number" step="0.01" name="excess_value" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="grid-2">
+                        <div class="input-group">
+                            <label>Total Damage HU’s Value (₹)</label>
+                            <input type="number" step="0.01" name="damage_value" class="form-control" required>
+                        </div>
+                        <div class="input-group">
+                            <label>Expired HU’s Value (₹)</label>
+                            <input type="number" step="0.01" name="expired_value" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>EAN Mismatch Value (₹)</label>
+                        <input type="number" step="0.01" name="ean_mismatch_value" class="form-control" required>
+                    </div>
+                </div>
+            </details>
+
+            <details class="section-accordion">
+                <summary>Section 6: Final Reference</summary>
+                <div class="accordion-content">
+                    <div class="input-group" style="display: flex; gap: 10px; align-items: center; margin-bottom: 15px;">
+                        <input type="checkbox" id="vin_mrn_check" onchange="toggleMRNField()" style="width: 20px; height: 20px;">
+                        <label for="vin_mrn_check" style="margin: 0; padding-top:2px;">MRN No. Generated?</label>
+                    </div>
+                    
+                    <div class="input-group hidden" id="vin_mrn_container">
+                        <label>MRN No.</label>
+                        <input type="text" id="vin_mrn_input" name="mrn_no" class="form-control" placeholder="Manual Entry">
+                    </div>
+
+                    <div class="grid-2">
+                        <div class="input-group">
+                            <label>GRN Status</label>
+                            <select name="grn_status" class="form-control" required style="background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); color: #fff; appearance: auto;">
+                                <option value="" disabled selected>Select...</option>
+                                <option value="Pending">Pending</option>
+                                <option value="Hold">Hold</option>
+                                <option value="Completed">Completed</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label>Unloading Completed Time</label>
+                            <input type="time" name="completed_time" class="form-control" required>
+                        </div>
+                    </div>
+                </div>
+            </details>
+            
+            <button type="submit" class="btn-access" style="background:var(--metro-yellow); color:#000; margin-top:20px;">LOG INBOUND</button>
+        </form>
+    </section>
+
+    <!-- Form: Material Inward -->
+    <section id="form-inward-material" class="container hidden">
+        <div class="nav-back" onclick="showModule('screen-inward')">← Back to Inward</div>
+        <h2 style="margin-bottom: 24px;">📦 Material Inward</h2>
+        <form class="glass form-box animate-in" onsubmit="submitForm(event, 'Material_Inward')">
+            <div class="grid-2">
+                <div class="input-group">
+                    <label>LPA Name</label>
+                    <input type="text" id="mat_lpa_name" name="lpa_name" class="form-control" readonly required style="color:var(--slp-cyan);">
+                </div>
+                <div class="input-group">
+                    <label>Inward Number (Unique ID)</label>
+                    <input type="text" name="inward_number" class="form-control" placeholder="e.g. MAT-123456" required>
+                </div>
+            </div>
+            <div class="grid-2">
+                <div class="input-group">
+                    <label>Date</label>
+                    <input type="date" id="mat_date" name="date" class="form-control" required>
+                </div>
+                <div class="input-group">
+                    <label>Vehicle No.</label>
+                    <input type="text" name="vehicle_no" class="form-control" placeholder="MH-12-XX-0000" required style="text-transform: uppercase;">
+                </div>
+            </div>
+            <div class="input-group">
+                <label>Transporter Name</label>
+                <input type="text" name="transporter_name" class="form-control" required>
+            </div>
+            <div class="input-group">
+                <label>Description</label>
+                <input type="text" name="description" class="form-control" required>
+            </div>
+            <div class="grid-2">
+                <div class="input-group">
+                    <label>Total HU</label>
+                    <input type="number" name="total_hu" class="form-control" required>
+                </div>
+                <div class="input-group">
+                    <label>Total EA</label>
+                    <input type="number" name="total_ea" class="form-control" required>
+                </div>
+            </div>
+            <div class="grid-2">
+                <div class="input-group">
+                    <label>Material Value (₹)</label>
+                    <input type="number" step="0.01" name="material_value" class="form-control" required>
+                </div>
+                <div class="input-group">
+                    <label>VRN No</label>
+                    <input type="text" name="vrn_no" class="form-control" required>
+                </div>
+            </div>
+            <div class="input-group">
+                <label>Remarks</label>
+                <textarea name="remarks" class="form-control" style="height: 60px;" placeholder="Optional details..."></textarea>
+            </div>
+            <button type="submit" class="btn-access" style="background:var(--metro-yellow); color:#000;">LOG RECEIVED</button>
+        </form>
+    </section>
+
+    <!-- NEW FORM: Diesel / Water -->
+    <section id="form-inward-diesel" class="container hidden">
+        <div class="nav-back" onclick="showModule('screen-inward')">← Back to Inward</div>
+        <h2 style="margin-bottom: 24px;">⛽ Diesel / Water</h2>
+        <form class="glass form-box animate-in" onsubmit="submitForm(event, 'Diesel_Water_Inward')">
+            <div class="grid-2">
+                <div class="input-group">
+                    <label>LPA Name</label>
+                    <input type="text" id="diesel_lpa_name" name="lpa_name" class="form-control" readonly required style="color:var(--slp-cyan);">
+                </div>
+                <div class="input-group">
+                    <label>Inward Number (Unique ID)</label>
+                    <input type="text" name="inward_number" class="form-control" placeholder="e.g. DIL-123456" required>
+                </div>
+            </div>
+            <div class="grid-2">
+                <div class="input-group">
+                    <label>Utility Type</label>
+                    <select name="utility_type" class="form-control" required style="background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); color: #fff; appearance: auto;">
+                        <option value="" disabled selected>Select...</option>
+                        <option value="Water">💧 Water</option>
+                        <option value="Diesel">⛽ Diesel</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Date</label>
+                    <input type="date" id="diesel_date" name="date" class="form-control" required>
+                </div>
+            </div>
+            <div class="grid-2">
+                <div class="input-group">
+                    <label>Vehicle No.</label>
+                    <input type="text" name="vehicle_no" class="form-control" placeholder="MH-12-XX-0000" required style="text-transform: uppercase;">
+                </div>
+                <div class="input-group">
+                    <label>Driver Name</label>
+                    <input type="text" name="driver_name" class="form-control" required>
+                </div>
+            </div>
+            <div class="input-group">
+                <label>Vendor Name</label>
+                <input type="text" name="vendor_name" class="form-control" required>
+            </div>
+            <div class="input-group">
+                <label>Description</label>
+                <input type="text" name="description" class="form-control" required>
+            </div>
+            <div class="grid-2">
+                <div class="input-group">
+                    <label>Purchased Qty</label>
+                    <input type="number" step="0.01" name="purchased_qty" class="form-control" required>
+                </div>
+                <div class="input-group">
+                    <label>Purchased Value (₹)</label>
+                    <input type="number" step="0.01" name="purchased_value" class="form-control" required>
+                </div>
+            </div>
+            <div class="input-group">
+                <label>Remarks</label>
+                <textarea name="remarks" class="form-control" style="height: 60px;" placeholder="Optional details..."></textarea>
+            </div>
+            <button type="submit" class="btn-access" style="background:var(--metro-yellow); color:#000;">SUBMIT UTILITY INWARD</button>
+        </form>
+    </section>
+
+    <!-- NEW FORM: Imprest Inward -->
+    <section id="form-inward-imprest" class="container hidden">
+        <div class="nav-back" onclick="showModule('screen-inward')">← Back to Inward</div>
+        <h2 style="margin-bottom: 24px;">🧾 Imprest Inward</h2>
+        <form class="glass form-box animate-in" onsubmit="submitForm(event, 'Imprest_Inward')">
+            <div class="grid-2">
+                <div class="input-group">
+                    <label>LPA Name</label>
+                    <input type="text" id="imp_lpa_name" name="lpa_name" class="form-control" readonly required style="color:var(--slp-cyan);">
+                </div>
+                <div class="input-group">
+                    <label>Inward Number (Unique ID)</label>
+                    <input type="text" name="inward_number" class="form-control" placeholder="e.g. IMP-123456" required>
+                </div>
+            </div>
+            <div class="input-group">
+                <label>Date</label>
+                <input type="date" id="imp_date" name="date" class="form-control" required>
+            </div>
+            <div class="input-group">
+                <label>Vendor Name</label>
+                <input type="text" name="vendor_name" class="form-control" required>
+            </div>
+            <div class="input-group">
+                <label>Description</label>
+                <input type="text" name="description" class="form-control" required>
+            </div>
+            <div class="grid-2">
+                <div class="input-group">
+                    <label>Invoice No</label>
+                    <input type="text" name="invoice_no" class="form-control" required>
+                </div>
+                <div class="input-group">
+                    <label>Payment Receipt Number</label>
+                    <input type="text" name="receipt_no" class="form-control" required>
+                </div>
+            </div>
+            <div class="grid-2">
+                <div class="input-group">
+                    <label>Purchased Qty</label>
+                    <input type="number" step="0.01" name="purchased_qty" class="form-control" required>
+                </div>
+                <div class="input-group">
+                    <label>Amount Purchased (₹)</label>
+                    <input type="number" step="0.01" name="amount_purchased" class="form-control" required>
+                </div>
+            </div>
+            <div class="input-group">
+                <label>Document Receiver Name</label>
+                <input type="text" name="receiver_name" class="form-control" required>
+            </div>
+            <button type="submit" class="btn-access" style="background:var(--metro-yellow); color:#000;">LOG IMPREST ENTRY</button>
+        </form>
+    </section>
+
+    <!-- NEW FORM: RTV (Return to Vendor) -->
+    <section id="form-outward-rtv" class="container hidden">
+        <div class="nav-back" onclick="showModule('screen-outward')">← Back to Outward</div>
+        <h2 style="margin-bottom: 24px;">↩️ RTV (Return to Vendor)</h2>
+        <form class="glass form-box animate-in" onsubmit="submitForm(event, 'Return_To_Vendor')">
+            <div class="grid-2">
+                <div class="input-group">
+                    <label>LPA Name</label>
+                    <input type="text" id="rtv_lpa_name" name="lpa_name" class="form-control" readonly required style="color:var(--slp-cyan);">
+                </div>
+                <div class="input-group">
+                    <label>Outward Number (Unique ID)</label>
+                    <input type="text" id="rtv_outward_num" name="outward_number" class="form-control" placeholder="e.g. RTV-123456" required>
+                </div>
+            </div>
+            <div class="grid-2">
+                <div class="input-group">
+                    <label>Date</label>
+                    <input type="date" id="rtv_date" name="date" class="form-control" required>
+                </div>
+                <div class="input-group">
+                    <label>Time</label>
+                    <input type="time" id="rtv_time" name="time" class="form-control" required>
+                </div>
+            </div>
+            <div class="input-group">
+                <label>Document Number</label>
+                <input type="number" name="document_number" class="form-control" required>
+            </div>
+            <div class="grid-2">
+                <div class="input-group">
+                    <label>Vehicle No.</label>
+                    <input type="text" name="vehicle_no" class="form-control" required style="text-transform: uppercase;">
+                </div>
+                <div class="input-group">
+                    <label>Transporter Name</label>
+                    <input type="text" name="transporter_name" class="form-control" required>
+                </div>
+                <div class="input-group">
+                    <label>VRN No</label>
+                    <input type="text" name="vrn_no" class="form-control" required>
+                </div>
+                <div class="input-group">
+                    <label>Total Boxes</label>
+                    <input type="number" name="total_boxes" class="form-control" required>
+                </div>
+            </div>
+            <div class="grid-2">
+                <div class="input-group">
+                    <label>Total HU</label>
+                    <input type="number" name="total_hu" class="form-control" required>
+                </div>
+                <div class="input-group">
+                    <label>Total EA</label>
+                    <input type="number" name="total_ea" class="form-control" required>
+                </div>
+            </div>
+            <div class="input-group">
+                <label>Total Value (₹)</label>
+                <input type="number" step="0.01" name="total_value" class="form-control" required>
+            </div>
+            <button type="submit" class="btn-access" style="background:var(--metro-yellow); color:#000;">SUBMIT RTV ENTRY</button>
+        </form>
+    </section>
+
+    <!-- NEW FORM: STO's -->
+    <section id="form-outward-sto" class="container hidden">
+        <div class="nav-back" onclick="showModule('screen-outward')">← Back to Outward</div>
+        <h2 style="margin-bottom: 24px;">🔄 STO's (Stock Transfer)</h2>
+        <form class="glass form-box animate-in" onsubmit="submitForm(event, 'STOs')">
+            <div class="grid-2">
+                <div class="input-group">
+                    <label>LPA Name</label>
+                    <input type="text" id="sto_lpa_name" name="lpa_name" class="form-control" readonly required style="color:var(--slp-cyan);">
+                </div>
+                <div class="input-group">
+                    <label>Outward Number (Unique ID)</label>
+                    <input type="text" id="sto_outward_num" name="outward_number" class="form-control" placeholder="e.g. STO-123456" required>
+                </div>
+            </div>
+            <div class="grid-2">
+                <div class="input-group">
+                    <label>Date</label>
+                    <input type="date" id="sto_date" name="date" class="form-control" required>
+                </div>
+                <div class="input-group">
+                    <label>Time</label>
+                    <input type="time" id="sto_time" name="time" class="form-control" required>
+                </div>
+            </div>
+            <div class="input-group">
+                <label>Document Number</label>
+                <input type="number" name="document_number" class="form-control" required>
+            </div>
+            <div class="input-group">
+                <label>Sending Site Name</label>
+                <input type="text" name="sending_site" class="form-control" required>
+            </div>
+            <div class="grid-2">
+                <div class="input-group">
+                    <label>Vehicle No.</label>
+                    <input type="text" name="vehicle_no" class="form-control" required style="text-transform: uppercase;">
+                </div>
+                <div class="input-group">
+                    <label>Transporter Name</label>
+                    <input type="text" name="transporter_name" class="form-control" required>
+                </div>
+                <div class="input-group">
+                    <label>Seal No</label>
+                    <input type="text" name="seal_no" class="form-control" required>
+                </div>
+                <div class="input-group">
+                    <label>VRN No</label>
+                    <input type="text" name="vrn_no" class="form-control" required>
+                </div>
+            </div>
+            <div class="grid-2">
+                <div class="input-group">
+                    <label>Driver Name</label>
+                    <input type="text" name="driver_name" class="form-control" required>
+                </div>
+                <div class="input-group">
+                    <label>Driver License No</label>
+                    <input type="text" name="license_no" class="form-control" required style="text-transform: uppercase;">
+                </div>
+                <div class="input-group">
+                    <label>Total HU</label>
+                    <input type="number" name="total_hu" class="form-control" required>
+                </div>
+                <div class="input-group">
+                    <label>Total EA</label>
+                    <input type="number" name="total_ea" class="form-control" required>
+                </div>
+            </div>
+            <div class="input-group">
+                <label>Total Value (₹)</label>
+                <input type="number" step="0.01" name="total_value" class="form-control" required>
+            </div>
+            <button type="submit" class="btn-access" style="background:var(--metro-yellow); color:#000;">SUBMIT STO</button>
+        </form>
+    </section>
+
+    <!-- NEW FORM: Second Sales -->
+    <section id="form-outward-sales" class="container hidden">
+        <div class="nav-back" onclick="showModule('screen-outward')">← Back to Outward</div>
+        <h2 style="margin-bottom: 24px;">🤝 Second Sales</h2>
+        <form class="glass form-box animate-in" onsubmit="submitForm(event, 'Second_Sales')">
+            <div class="grid-2">
+                <div class="input-group">
+                    <label>LPA Name</label>
+                    <input type="text" id="sales_lpa_name" name="lpa_name" class="form-control" readonly required style="color:var(--slp-cyan);">
+                </div>
+                <div class="input-group">
+                    <label>Outward Number (Unique ID)</label>
+                    <input type="text" name="outward_number" class="form-control" placeholder="e.g. SL-123456" required>
+                </div>
+            </div>
+            <div class="grid-2">
+                <div class="input-group">
+                    <label>Date</label>
+                    <input type="date" id="sales_date" name="date" class="form-control" required>
+                </div>
+                <div class="input-group">
+                    <label>Time</label>
+                    <input type="time" id="sales_time" name="time" class="form-control" required>
+                </div>
+            </div>
+            <div class="input-group">
+                <label>Document Number</label>
+                <input type="number" name="document_number" class="form-control" required>
+            </div>
+            <div class="grid-2">
+                <div class="input-group">
+                    <label>Vehicle No.</label>
+                    <input type="text" name="vehicle_no" class="form-control" required style="text-transform: uppercase;">
+                </div>
+                <div class="input-group">
+                    <label>Transporter Name</label>
+                    <input type="text" name="transporter_name" class="form-control" required>
+                </div>
+                <div class="input-group">
+                    <label>VRN No</label>
+                    <input type="text" name="vrn_no" class="form-control" required>
+                </div>
+                <div class="input-group">
+                    <label>Total Boxes</label>
+                    <input type="number" name="total_boxes" class="form-control" required>
+                </div>
+            </div>
+            <div class="grid-2">
+                <div class="input-group">
+                    <label>Total HU</label>
+                    <input type="number" name="total_hu" class="form-control" required>
+                </div>
+                <div class="input-group">
+                    <label>Total EA</label>
+                    <input type="number" name="total_ea" class="form-control" required>
+                </div>
+            </div>
+            <div class="input-group">
+                <label>Total Value (₹)</label>
+                <input type="number" step="0.01" name="total_value" class="form-control" required>
+            </div>
+            <button type="submit" class="btn-access" style="background:var(--metro-yellow); color:#000;">SUBMIT SALES ENTRY</button>
+        </form>
+    </section>
+
+    <!-- NEW FORM: Jiomart Vehicle Outward -->
+    <section id="form-outward-jiomart" class="container hidden">
+        <div class="nav-back" onclick="showModule('screen-outward')">← Back to Outward</div>
+        <h2 style="margin-bottom: 24px;">🛒 Jiomart Vehicle Outward</h2>
+        <form class="glass form-box animate-in" onsubmit="submitForm(event, 'Jiomart_Outward')">
+            <div class="grid-2">
+                <div class="input-group">
+                    <label>LPA Name</label>
+                    <input type="text" id="jio_lpa_name" name="lpa_name" class="form-control" readonly required style="color:var(--slp-cyan);">
+                </div>
+                <div class="input-group">
+                    <label>Outward Number (Unique ID)</label>
+                    <input type="text" name="outward_number" class="form-control" placeholder="e.g. JIO-123456" required>
+                </div>
+            </div>
+            <div class="grid-2">
+                <div class="input-group">
+                    <label>Date</label>
+                    <input type="date" id="jio_date" name="date" class="form-control" required>
+                </div>
+                <div class="input-group">
+                    <label>Time</label>
+                    <input type="time" id="jio_time" name="time" class="form-control" required>
+                </div>
+            </div>
+            <div class="input-group" style="margin-bottom: 15px;">
+                <label>No of Trips</label>
+                <input type="number" id="jio_num_trips" name="num_trips" class="form-control" required min="1" max="10" oninput="generateJioTrips()">
+            </div>
+            <div id="jio-dynamic-trips">
+               <!-- Auto-generated via generateJioTrips() script -->
+            </div>
+            <div class="grid-2">
+                <div class="input-group">
+                    <label>Vehicle No.</label>
+                    <input type="text" name="vehicle_no" class="form-control" required style="text-transform: uppercase;">
+                </div>
+                <div class="input-group">
+                    <label>Transporter Name</label>
+                    <input type="text" name="transporter_name" class="form-control" required>
+                </div>
+                <div class="input-group">
+                    <label>Vehicle Out Km</label>
+                    <input type="number" name="vehicle_out_km" class="form-control" required>
+                </div>
+                <div class="input-group">
+                    <label>VRN No</label>
+                    <input type="text" name="vrn_no" class="form-control" required>
+                </div>
+            </div>
+            <div class="grid-2">
+                <div class="input-group">
+                    <label>Driver Name</label>
+                    <input type="text" name="driver_name" class="form-control" required>
+                </div>
+                <div class="input-group">
+                    <label>Driver License No</label>
+                    <input type="text" name="license_no" class="form-control" required style="text-transform: uppercase;">
+                </div>
+            </div>
+            <div class="grid-2">
+                <div class="input-group">
+                    <label>Total Boxes</label>
+                    <input type="number" name="total_boxes" class="form-control" required>
+                </div>
+                <div class="input-group">
+                    <label>Total HU</label>
+                    <input type="number" name="total_hu" class="form-control" required>
+                </div>
+                <div class="input-group" style="grid-column: span 2;">
+                    <label>Total EA</label>
+                    <input type="number" name="total_ea" class="form-control" required>
+                </div>
+            </div>
+            <div class="input-group">
+                <label>Total Value (₹)</label>
+                <input type="number" step="0.01" name="total_value" class="form-control" required>
+            </div>
+            <button type="submit" class="btn-access" style="background:var(--metro-yellow); color:#000;">SUBMIT JIOMART OUTWARD</button>
+        </form>
+    </section>
+
+    <!-- NEW AUDIT FORMS -->
+    <section id="form-audit-dock" class="container hidden">
+        <div class="nav-back" onclick="showModule('screen-audits')">← Back to Audits</div>
+        <h2 style="margin-bottom: 24px;">🚪 Dock Door Audit</h2>
+        <form class="glass form-box animate-in" onsubmit="submitForm(event, 'Dock_Door_Audit')" style="padding: 10px;">
+            
+            <details class="form-section" open>
+                <summary>1. Basic Details</summary>
+                <div class="section-content grid-2">
+                    <div class="input-group">
+                        <label>LPA Name</label>
+                        <input type="text" id="dock_lpa_name" name="lpa_name" class="form-control" readonly required style="color:var(--slp-cyan);">
+                    </div>
+                    <div class="input-group">
+                        <label>Date</label>
+                        <input type="date" id="dock_date" name="date" class="form-control" required>
+                    </div>
+                    <div class="input-group" style="grid-column: span 2; position: relative;">
+                        <label>Order ID</label>
+                        <input type="text" id="dock_order_id" name="order_id" class="form-control" placeholder="Scan or Type Order..." required>
+                        <button type="button" class="scan-btn" onclick="startScanner('dock_order_id')">📷</button>
+                    </div>
+                    <div class="input-group" style="grid-column: span 2;">
+                        <label>Packer ID</label>
+                        <input type="text" name="packer_id" class="form-control" required>
+                    </div>
+                </div>
+            </details>
+
+            <details class="form-section">
+                <summary>2. Article Details</summary>
+                <div class="section-content">
+                    <div class="input-group" style="position: relative;">
+                        <label>EAN Code</label>
+                        <input type="text" id="dock_ean" name="ean" class="form-control" placeholder="Scan or Type..." required onblur="lookupDockEAN()" style="padding-right: 90px;">
+                        <button type="button" class="scan-btn" onclick="startScanner('dock_ean')" style="right: 48px; width:40px; border-radius:10px; border-top-right-radius:0; border-bottom-right-radius:0; border-right:1px solid rgba(255,255,255,0.1);">📷</button>
+                        <button type="button" class="scan-btn" onclick="lookupDockEAN()" id="btn_dock_ean" style="width:40px; border-radius:10px; border-top-left-radius:0; border-bottom-left-radius:0;">🔍</button>
+                    </div>
+                    <div class="grid-2">
+                        <div class="input-group">
+                            <label>Article Code</label>
+                            <input type="text" id="dock_article" name="article_code" class="form-control" readonly required style="background:rgba(0,0,0,0.5);">
+                        </div>
+                        <div class="input-group">
+                            <label>MAP (₹)</label>
+                            <input type="number" step="0.01" id="dock_map" name="map_val" class="form-control" readonly required style="background:rgba(0,0,0,0.5);">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>Article Description</label>
+                        <input type="text" id="dock_desc" name="article_desc" class="form-control" readonly required style="background:rgba(0,0,0,0.5);">
+                    </div>
+                </div>
+            </details>
+
+            <details class="form-section">
+                <summary>3. Quantity Details</summary>
+                <div class="section-content grid-2">
+                    <div class="input-group"><label>Invoice Qty</label><input type="number" id="dock_inv_qty" name="inv_qty" class="form-control" required min="0" oninput="calcDock()"></div>
+                    <div class="input-group"><label>Pick Qty</label><input type="number" id="dock_pick_qty" name="pick_qty" class="form-control" required min="0" oninput="calcDock()"></div>
+                    
+                    <div class="input-group"><label>Short Qty</label><input type="number" id="dock_short_qty" name="short_qty" class="form-control" readonly style="background:rgba(0,0,0,0.5); color:var(--alert-red);"></div>
+                    <div class="input-group"><label>Excess Qty</label><input type="number" id="dock_excess_qty" name="excess_qty" class="form-control" readonly style="background:rgba(0,0,0,0.5); color:var(--success-green);"></div>
+                    
+                    <div class="input-group" style="grid-column: span 2;"><label>Damaged Qty</label><input type="number" id="dock_dmg_qty" name="dmg_qty" class="form-control" required min="0" value="0" oninput="calcDock()"></div>
+                    <div class="input-group" style="grid-column: span 2;"><label>Near / Expiry Qty</label><input type="number" id="dock_exp_qty" name="exp_qty" class="form-control" required min="0" value="0" oninput="calcDock()"></div>
+                    <div class="input-group" style="grid-column: span 2;"><label>MRP Mismatch Qty</label><input type="number" id="dock_mrp_qty" name="mrp_qty" class="form-control" required min="0" value="0" oninput="calcDock()"></div>
+                </div>
+            </details>
+
+            <details class="form-section">
+                <summary>4. Value Details</summary>
+                <div class="section-content grid-2">
+                    <div class="input-group"><label>Short Value (₹)</label><input type="number" step="0.01" id="dock_short_val" name="short_val" class="form-control" readonly style="background:rgba(0,0,0,0.5); color:var(--alert-red);"></div>
+                    <div class="input-group"><label>Excess Val (₹)</label><input type="number" step="0.01" id="dock_excess_val" name="excess_val" class="form-control" readonly style="background:rgba(0,0,0,0.5); color:var(--success-green);"></div>
+                    <div class="input-group"><label>Damaged Val (₹)</label><input type="number" step="0.01" id="dock_dmg_val" name="dmg_val" class="form-control" readonly style="background:rgba(0,0,0,0.5);"></div>
+                    <div class="input-group"><label>Expiry Val (₹)</label><input type="number" step="0.01" id="dock_exp_val" name="exp_val" class="form-control" readonly style="background:rgba(0,0,0,0.5);"></div>
+                    <div class="input-group" style="grid-column: span 2;"><label>MRP Mismatch Val (₹)</label><input type="number" step="0.01" id="dock_mrp_val" name="mrp_val" class="form-control" readonly style="background:rgba(0,0,0,0.5);"></div>
+                </div>
+            </details>
+
+            <div style="padding: 10px 0;">
+                <button type="submit" class="btn-access" style="background:var(--metro-yellow); color:#000;" onclick="document.querySelectorAll('#form-audit-dock details').forEach(d => d.open = true);">SUBMIT AUDIT ENTRY</button>
+            </div>
+        </form>
+    </section>
+
+    <section id="form-audit-pack" class="container hidden">
+        <div class="nav-back" onclick="showModule('screen-audits')">← Back to Audits</div>
+        <h2 style="margin-bottom: 24px;">📦 Packing Station Audit</h2>
+        <form class="glass form-box animate-in" onsubmit="submitForm(event, 'Packing_Station_Audit')" style="padding: 10px;">
+            
+            <details class="form-section" open>
+                <summary>1. Basic Details</summary>
+                <div class="section-content grid-2">
+                    <div class="input-group">
+                        <label>LPA Name</label>
+                        <input type="text" id="pack_lpa_name" name="lpa_name" class="form-control" readonly required style="color:var(--slp-cyan);">
+                    </div>
+                    <div class="input-group">
+                        <label>Date</label>
+                        <input type="date" id="pack_date" name="date" class="form-control" required>
+                    </div>
+                    <div class="input-group" style="grid-column: span 2; position: relative;">
+                        <label>Order ID</label>
+                        <input type="text" id="pack_order_id" name="order_id" class="form-control" placeholder="Scan or Type Order..." required>
+                        <button type="button" class="scan-btn" onclick="startScanner('pack_order_id')">📷</button>
+                    </div>
+                    <div class="input-group" style="grid-column: span 2;">
+                        <label>Packer ID</label>
+                        <input type="text" name="packer_id" class="form-control" required>
+                    </div>
+                </div>
+            </details>
+
+            <details class="form-section">
+                <summary>2. Article Details</summary>
+                <div class="section-content">
+                    <div class="input-group" style="position: relative;">
+                        <label>EAN Code</label>
+                        <input type="text" id="pack_ean" name="ean" class="form-control" placeholder="Scan or Type..." required onblur="lookupPackEAN()" style="padding-right: 90px;">
+                        <button type="button" class="scan-btn" onclick="startScanner('pack_ean')" style="right: 48px; width:40px; border-radius:10px; border-top-right-radius:0; border-bottom-right-radius:0; border-right:1px solid rgba(255,255,255,0.1);">📷</button>
+                        <button type="button" class="scan-btn" onclick="lookupPackEAN()" id="btn_pack_ean" style="width:40px; border-radius:10px; border-top-left-radius:0; border-bottom-left-radius:0;">🔍</button>
+                    </div>
+                    <div class="grid-2">
+                        <div class="input-group">
+                            <label>Article Code</label>
+                            <input type="text" id="pack_article" name="article_code" class="form-control" readonly required style="background:rgba(0,0,0,0.5);">
+                        </div>
+                        <div class="input-group">
+                            <label>MAP (₹)</label>
+                            <input type="number" step="0.01" id="pack_map" name="map_val" class="form-control" readonly required style="background:rgba(0,0,0,0.5);">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>Article Description</label>
+                        <input type="text" id="pack_desc" name="article_desc" class="form-control" readonly required style="background:rgba(0,0,0,0.5);">
+                    </div>
+                </div>
+            </details>
+
+            <details class="form-section">
+                <summary>3. Quantity Details</summary>
+                <div class="section-content grid-2">
+                    <div class="input-group"><label>Invoice Qty</label><input type="number" id="pack_inv_qty" name="inv_qty" class="form-control" required min="0" oninput="calcPack()"></div>
+                    <div class="input-group"><label>Pick Qty</label><input type="number" id="pack_pick_qty" name="pick_qty" class="form-control" required min="0" oninput="calcPack()"></div>
+                    
+                    <div class="input-group"><label>Short Qty</label><input type="number" id="pack_short_qty" name="short_qty" class="form-control" readonly style="background:rgba(0,0,0,0.5); color:var(--alert-red);"></div>
+                    <div class="input-group"><label>Excess Qty</label><input type="number" id="pack_excess_qty" name="excess_qty" class="form-control" readonly style="background:rgba(0,0,0,0.5); color:var(--success-green);"></div>
+                    
+                    <div class="input-group" style="grid-column: span 2;"><label>Damaged Qty</label><input type="number" id="pack_dmg_qty" name="dmg_qty" class="form-control" required min="0" value="0" oninput="calcPack()"></div>
+                    <div class="input-group" style="grid-column: span 2;"><label>Near / Expiry Qty</label><input type="number" id="pack_exp_qty" name="exp_qty" class="form-control" required min="0" value="0" oninput="calcPack()"></div>
+                    <div class="input-group" style="grid-column: span 2;"><label>MRP Mismatch Qty</label><input type="number" id="pack_mrp_qty" name="mrp_qty" class="form-control" required min="0" value="0" oninput="calcPack()"></div>
+                </div>
+            </details>
+
+            <details class="form-section">
+                <summary>4. Value Details</summary>
+                <div class="section-content grid-2">
+                    <div class="input-group"><label>Short Value (₹)</label><input type="number" step="0.01" id="pack_short_val" name="short_val" class="form-control" readonly style="background:rgba(0,0,0,0.5); color:var(--alert-red);"></div>
+                    <div class="input-group"><label>Excess Val (₹)</label><input type="number" step="0.01" id="pack_excess_val" name="excess_val" class="form-control" readonly style="background:rgba(0,0,0,0.5); color:var(--success-green);"></div>
+                    <div class="input-group"><label>Damaged Val (₹)</label><input type="number" step="0.01" id="pack_dmg_val" name="dmg_val" class="form-control" readonly style="background:rgba(0,0,0,0.5);"></div>
+                    <div class="input-group"><label>Expiry Val (₹)</label><input type="number" step="0.01" id="pack_exp_val" name="exp_val" class="form-control" readonly style="background:rgba(0,0,0,0.5);"></div>
+                    <div class="input-group" style="grid-column: span 2;"><label>MRP Mismatch Val (₹)</label><input type="number" step="0.01" id="pack_mrp_val" name="mrp_val" class="form-control" readonly style="background:rgba(0,0,0,0.5);"></div>
+                </div>
+            </details>
+
+            <div style="padding: 10px 0;">
+                <button type="submit" class="btn-access" style="background:var(--metro-yellow); color:#000;" onclick="document.querySelectorAll('#form-audit-pack details').forEach(d => d.open = true);">SUBMIT AUDIT ENTRY</button>
+            </div>
+        </form>
+    </section>
+
+    <section id="form-audit-bin" class="container hidden">
+        <div class="nav-back" onclick="showModule('screen-audits')">← Back to Audits</div>
+        <h2 style="margin-bottom: 24px;">🗑️ Bin Audit</h2>
+        <form class="glass form-box animate-in" onsubmit="submitForm(event, 'Bin_Audit')" style="padding: 10px;">
+            
+            <details class="form-section" open>
+                <summary>1. Basic Details</summary>
+                <div class="section-content grid-2">
+                    <div class="input-group">
+                        <label>LPA Name</label>
+                        <input type="text" id="bin_lpa_name" name="lpa_name" class="form-control" readonly required style="color:var(--slp-cyan);">
+                    </div>
+                    <div class="input-group">
+                        <label>Date</label>
+                        <input type="date" id="bin_date" name="date" class="form-control" required>
+                    </div>
+                    <div class="input-group" style="grid-column: span 2;">
+                        <label>Storage Location</label>
+                        <select id="bin_location" name="location" class="form-control" required>
+                            <option value="">Select Block...</option>
+                            <option value="Block A">Block A</option>
+                            <option value="Block B">Block B</option>
+                            <option value="Block C">Block C</option>
+                        </select>
+                    </div>
+                    <div class="input-group" style="grid-column: span 2;">
+                        <label>Storage Bin ID</label>
+                        <input type="number" name="bin_id" class="form-control" required>
+                    </div>
+                </div>
+            </details>
+
+            <details class="form-section">
+                <summary>2. Article Details</summary>
+                <div class="section-content">
+                    <div class="input-group" style="position: relative;">
+                        <label>EAN Code</label>
+                        <input type="text" id="bin_ean" name="ean" class="form-control" placeholder="Scan or Type..." required onblur="lookupBinEAN()" style="padding-right: 90px;">
+                        <button type="button" class="scan-btn" onclick="startScanner('bin_ean')" style="right: 48px; width:40px; border-radius:10px; border-top-right-radius:0; border-bottom-right-radius:0; border-right:1px solid rgba(255,255,255,0.1);">📷</button>
+                        <button type="button" class="scan-btn" onclick="lookupBinEAN()" id="btn_bin_ean" style="width:40px; border-radius:10px; border-top-left-radius:0; border-bottom-left-radius:0;">🔍</button>
+                    </div>
+                    <div class="grid-2">
+                        <div class="input-group">
+                            <label>Article Code</label>
+                            <input type="text" id="bin_article" name="article_code" class="form-control" readonly required style="background:rgba(0,0,0,0.5);">
+                        </div>
+                        <div class="input-group">
+                            <label>MAP (₹)</label>
+                            <input type="number" step="0.01" id="bin_map" name="map_val" class="form-control" readonly required style="background:rgba(0,0,0,0.5);">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>Article Description</label>
+                        <input type="text" id="bin_desc" name="article_desc" class="form-control" readonly required style="background:rgba(0,0,0,0.5);">
+                    </div>
+                </div>
+            </details>
+
+            <details class="form-section">
+                <summary>3. Quantity Details</summary>
+                <div class="section-content grid-2">
+                    <div class="input-group"><label>System Qty</label><input type="number" id="bin_sys_qty" name="sys_qty" class="form-control" required min="0" oninput="calcBin()"></div>
+                    <div class="input-group"><label>Physical Qty</label><input type="number" id="bin_phy_qty" name="phy_qty" class="form-control" required min="0" oninput="calcBin()"></div>
+                    
+                    <div class="input-group"><label>Short Qty</label><input type="number" id="bin_short_qty" name="short_qty" class="form-control" readonly style="background:rgba(0,0,0,0.5); color:var(--alert-red);"></div>
+                    <div class="input-group"><label>Excess Qty</label><input type="number" id="bin_excess_qty" name="excess_qty" class="form-control" readonly style="background:rgba(0,0,0,0.5); color:var(--success-green);"></div>
+                    
+                    <div class="input-group" style="grid-column: span 2;"><label>Damaged Qty</label><input type="number" id="bin_dmg_qty" name="dmg_qty" class="form-control" required min="0" value="0" oninput="calcBin()"></div>
+                    <div class="input-group" style="grid-column: span 2;"><label>Near / Expiry Qty</label><input type="number" id="bin_exp_qty" name="exp_qty" class="form-control" required min="0" value="0" oninput="calcBin()"></div>
+                    <div class="input-group" style="grid-column: span 2;"><label>Grazing Qty</label><input type="number" id="bin_grz_qty" name="grz_qty" class="form-control" required min="0" value="0" oninput="calcBin()"></div>
+                </div>
+            </details>
+
+            <details class="form-section">
+                <summary>4. Value Details</summary>
+                <div class="section-content grid-2">
+                    <div class="input-group"><label>Short Value (₹)</label><input type="number" step="0.01" id="bin_short_val" name="short_val" class="form-control" readonly style="background:rgba(0,0,0,0.5); color:var(--alert-red);"></div>
+                    <div class="input-group"><label>Excess Val (₹)</label><input type="number" step="0.01" id="bin_excess_val" name="excess_val" class="form-control" readonly style="background:rgba(0,0,0,0.5); color:var(--success-green);"></div>
+                    <div class="input-group"><label>Damaged Val (₹)</label><input type="number" step="0.01" id="bin_dmg_val" name="dmg_val" class="form-control" readonly style="background:rgba(0,0,0,0.5);"></div>
+                    <div class="input-group"><label>Expiry Val (₹)</label><input type="number" step="0.01" id="bin_exp_val" name="exp_val" class="form-control" readonly style="background:rgba(0,0,0,0.5);"></div>
+                    <div class="input-group" style="grid-column: span 2;"><label>Grazing Val (₹)</label><input type="number" step="0.01" id="bin_grz_val" name="grz_val" class="form-control" readonly style="background:rgba(0,0,0,0.5);"></div>
+                </div>
+            </details>
+
+            <div style="padding: 10px 0;">
+                <button type="submit" class="btn-access" style="background:var(--metro-yellow); color:#000;" onclick="document.querySelectorAll('#form-audit-bin details').forEach(d => d.open = true);">SUBMIT AUDIT ENTRY</button>
+            </div>
+        </form>
+    </section>
+
+    <section id="form-audit-floor" class="container hidden">
+        <div class="nav-back" onclick="showModule('screen-audits')">← Back to Audits</div>
+        <h2 style="margin-bottom: 24px;">🚶 Floor Walk Audit</h2>
+        <form class="glass form-box animate-in" onsubmit="submitForm(event, 'Floor_Walk_Audit')" style="padding: 10px;">
+            
+            <details class="form-section" open>
+                <summary>1. Basic Details</summary>
+                <div class="section-content grid-2">
+                    <div class="input-group">
+                        <label>LPA Name</label>
+                        <input type="text" id="floor_lpa_name" name="lpa_name" class="form-control" readonly required style="color:var(--slp-cyan);">
+                    </div>
+                    <div class="input-group">
+                        <label>Date</label>
+                        <input type="date" id="floor_date" name="date" class="form-control" required>
+                    </div>
+                    <div class="input-group" style="grid-column: span 2;">
+                        <label>Storage Location</label>
+                        <select id="floor_location" name="location" class="form-control" required>
+                            <option value="">Select Block...</option>
+                            <option value="Block A">Block A</option>
+                            <option value="Block B">Block B</option>
+                            <option value="Block C">Block C</option>
+                        </select>
+                    </div>
+                </div>
+            </details>
+
+            <details class="form-section">
+                <summary>2. Article Details</summary>
+                <div class="section-content">
+                    <div class="input-group" style="position: relative;">
+                        <label>EAN Code</label>
+                        <input type="text" id="floor_ean" name="ean" class="form-control" placeholder="Scan or Type..." required onblur="lookupFloorEAN()" style="padding-right: 90px;">
+                        <button type="button" class="scan-btn" onclick="startScanner('floor_ean')" style="right: 48px; width:40px; border-radius:10px; border-top-right-radius:0; border-bottom-right-radius:0; border-right:1px solid rgba(255,255,255,0.1);">📷</button>
+                        <button type="button" class="scan-btn" onclick="lookupFloorEAN()" id="btn_floor_ean" style="width:40px; border-radius:10px; border-top-left-radius:0; border-bottom-left-radius:0;">🔍</button>
+                    </div>
+                    <div class="grid-2">
+                        <div class="input-group">
+                            <label>Article Code</label>
+                            <input type="text" id="floor_article" name="article_code" class="form-control" readonly required style="background:rgba(0,0,0,0.5);">
+                        </div>
+                        <div class="input-group">
+                            <label>MAP (₹)</label>
+                            <input type="number" step="0.01" id="floor_map" name="map_val" class="form-control" readonly required style="background:rgba(0,0,0,0.5);">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>Article Description</label>
+                        <input type="text" id="floor_desc" name="article_desc" class="form-control" readonly required style="background:rgba(0,0,0,0.5);">
+                    </div>
+                </div>
+            </details>
+
+            <details class="form-section">
+                <summary>3. Quantity Details</summary>
+                <div class="section-content grid-2">
+                    <div class="input-group" style="grid-column: span 2;"><label>Damaged Qty</label><input type="number" id="floor_dmg_qty" name="dmg_qty" class="form-control" required min="0" value="0" oninput="calcFloor()"></div>
+                    <div class="input-group" style="grid-column: span 2;"><label>Near / Expiry Qty</label><input type="number" id="floor_exp_qty" name="exp_qty" class="form-control" required min="0" value="0" oninput="calcFloor()"></div>
+                    <div class="input-group" style="grid-column: span 2;"><label>Grazing Qty</label><input type="number" id="floor_grz_qty" name="grz_qty" class="form-control" required min="0" value="0" oninput="calcFloor()"></div>
+                    <div class="input-group" style="grid-column: span 2;"><label>Quality Issue Qty</label><input type="number" id="floor_qual_qty" name="qual_qty" class="form-control" required min="0" value="0" oninput="calcFloor()"></div>
+                </div>
+            </details>
+
+            <details class="form-section">
+                <summary>4. Value Details</summary>
+                <div class="section-content grid-2">
+                    <div class="input-group"><label>Damaged Val (₹)</label><input type="number" step="0.01" id="floor_dmg_val" name="dmg_val" class="form-control" readonly style="background:rgba(0,0,0,0.5);"></div>
+                    <div class="input-group"><label>Expiry Val (₹)</label><input type="number" step="0.01" id="floor_exp_val" name="exp_val" class="form-control" readonly style="background:rgba(0,0,0,0.5);"></div>
+                    <div class="input-group"><label>Grazing Val (₹)</label><input type="number" step="0.01" id="floor_grz_val" name="grz_val" class="form-control" readonly style="background:rgba(0,0,0,0.5);"></div>
+                    <div class="input-group"><label>Quality Val (₹)</label><input type="number" step="0.01" id="floor_qual_val" name="qual_val" class="form-control" readonly style="background:rgba(0,0,0,0.5);"></div>
+                </div>
+            </details>
+
+            <div style="padding: 10px 0;">
+                <button type="submit" class="btn-access" style="background:var(--metro-yellow); color:#000;" onclick="document.querySelectorAll('#form-audit-floor details').forEach(d => d.open = true);">SUBMIT AUDIT ENTRY</button>
+            </div>
+        </form>
+    </section>
+
+    <section id="form-audit-km" class="container hidden">
+        <div class="nav-back" onclick="showModule('screen-audits')">← Back to Audits</div>
+        <h2 style="margin-bottom: 24px;">🛣️ Km Validation Entry</h2>
+        <form class="glass form-box animate-in" onsubmit="submitForm(event, 'Km_Validation_Entry')" style="padding: 10px;">
+            
+            <details class="form-section" open>
+                <summary>1. Basic Details</summary>
+                <div class="section-content grid-2">
+                    <div class="input-group">
+                        <label>LPA Name</label>
+                        <input type="text" id="km_lpa_name" name="lpa_name" class="form-control" readonly required style="color:var(--slp-cyan);">
+                    </div>
+                    <div class="input-group">
+                        <label>Date</label>
+                        <input type="date" id="km_date" name="date" class="form-control" required>
+                    </div>
+                    <div class="input-group" style="grid-column: span 2;">
+                        <label>Vehicle No.</label>
+                        <input type="text" name="vehicle_no" class="form-control" placeholder="e.g. MH-12-AB-1234" pattern="[A-Za-z0-9 -]+" required>
+                    </div>
+                    <div class="input-group" style="grid-column: span 2;">
+                        <label>Driver Name</label>
+                        <input type="text" name="driver_name" class="form-control" required>
+                    </div>
+                </div>
+            </details>
+
+            <details class="form-section">
+                <summary>2. Trip Details</summary>
+                <div class="section-content grid-2">
+                    <div class="input-group" style="grid-column: span 2;">
+                        <label>No. of Trips</label>
+                        <input type="number" name="num_trips" class="form-control" min="1" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Start Location</label>
+                        <input type="text" name="start_loc" class="form-control" value="T2LS" required>
+                    </div>
+                    <div class="input-group">
+                        <label>End Location</label>
+                        <input type="text" name="end_loc" class="form-control" required>
+                    </div>
+                </div>
+            </details>
+
+            <details class="form-section">
+                <summary>3. Kilometer Details</summary>
+                <div class="section-content grid-2">
+                    <div class="input-group">
+                        <label>Opening KM</label>
+                        <input type="number" id="km_open" name="open_km" class="form-control" min="0" required oninput="calcKm()">
+                    </div>
+                    <div class="input-group">
+                        <label>Closing KM</label>
+                        <input type="number" id="km_close" name="close_km" class="form-control" min="0" required oninput="calcKm()">
+                    </div>
+                    <div class="input-group" style="grid-column: span 2;">
+                        <label>Total KM</label>
+                        <input type="number" id="km_total" name="total_km" class="form-control" readonly style="background:rgba(0,0,0,0.5);">
+                    </div>
+                </div>
+            </details>
+
+            <details class="form-section">
+                <summary>4. Validation</summary>
+                <div class="section-content grid-2">
+                    <div class="input-group">
+                        <label>Standard KM</label>
+                        <input type="number" id="km_std" name="std_km" class="form-control" min="0" value="100" required oninput="calcKm()">
+                    </div>
+                    <div class="input-group">
+                        <label>KM Variance</label>
+                        <input type="number" id="km_var" name="km_variance" class="form-control" readonly style="background:rgba(0,0,0,0.5);">
+                    </div>
+                    <div class="input-group" style="grid-column: span 2;">
+                        <label>Remarks</label>
+                        <textarea id="km_remarks" name="remarks" class="form-control" rows="2" placeholder="Optional Remarks..."></textarea>
+                    </div>
+                </div>
+            </details>
+
+            <div style="padding: 10px 0;">
+                <button type="submit" class="btn-access" style="background:var(--metro-yellow); color:#000;" onclick="document.querySelectorAll('#form-audit-km details').forEach(d => d.open = true);">SUBMIT KM ENTRY</button>
+            </div>
+        </form>
+    </section>
+
+    <section id="form-audit-trip" class="container hidden">
+        <div class="nav-back" onclick="showModule('screen-audits')">← Back to Audits</div>
+        <h2 style="margin-bottom: 24px;">🗺️ Trip Validation</h2>
+        <form class="glass form-box animate-in" onsubmit="submitForm(event, 'Trip_Validation')" style="padding: 10px;">
+            
+            <details class="form-section" open>
+                <summary>1. Planned Vehicle Details</summary>
+                <div class="section-content grid-2">
+                    <div class="input-group" style="grid-column: span 2; position: relative;">
+                        <label>Planned Vehicle No.</label>
+                        <input type="text" id="trip_plan_veh" name="plan_vehicle" class="form-control" placeholder="Scan or Type..." required>
+                        <button type="button" class="scan-btn" onclick="startScanner('trip_plan_veh')">📷</button>
+                    </div>
+                    <div class="input-group">
+                        <label>Planned Date</label>
+                        <input type="date" id="trip_plan_date" name="plan_date" class="form-control" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Trip No</label>
+                        <input type="text" name="plan_trip" class="form-control" required>
+                    </div>
+                    <div class="input-group" style="grid-column: span 2;">
+                        <label>DA Name</label>
+                        <input type="text" name="plan_da" class="form-control" required>
+                    </div>
+                    <div class="input-group">
+                        <label>No of Trips</label>
+                        <input type="number" name="plan_num_trips" class="form-control" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Order ID</label>
+                        <input type="text" name="plan_order" class="form-control" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Loading HU's</label>
+                        <input type="number" name="plan_hu" class="form-control" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Total Value (₹)</label>
+                        <input type="number" step="0.01" name="plan_total" class="form-control" required>
+                    </div>
+                </div>
+            </details>
+
+            <details class="form-section">
+                <summary>2. Actual Vehicle Details</summary>
+                <div class="section-content grid-2">
+                    <div class="input-group" style="grid-column: span 2; position: relative;">
+                        <label>Actual Vehicle No.</label>
+                        <input type="text" id="trip_act_veh" name="act_vehicle" class="form-control" placeholder="Scan or Type..." required>
+                        <button type="button" class="scan-btn" onclick="startScanner('trip_act_veh')">📷</button>
+                    </div>
+                    <div class="input-group">
+                        <label>Actual Date</label>
+                        <input type="date" id="trip_act_date" name="act_date" class="form-control" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Trip No</label>
+                        <input type="text" name="act_trip" class="form-control" required>
+                    </div>
+                    <div class="input-group" style="grid-column: span 2;">
+                        <label>DA Name</label>
+                        <input type="text" name="act_da" class="form-control" required>
+                    </div>
+                    <div class="input-group">
+                        <label>No of Trips</label>
+                        <input type="number" name="act_num_trips" class="form-control" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Order ID</label>
+                        <input type="text" name="act_order" class="form-control" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Loading HU's</label>
+                        <input type="number" name="act_hu" class="form-control" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Total Value (₹)</label>
+                        <input type="number" step="0.01" name="act_total" class="form-control" required>
+                    </div>
+                </div>
+            </details>
+
+            <details class="form-section">
+                <summary>3. Validation / Reason</summary>
+                <div class="section-content">
+                    <div class="input-group">
+                        <label>Reason for Variance</label>
+                        <textarea name="reason" class="form-control" rows="3" placeholder="Explain the difference between Planned vs Actual..." required></textarea>
+                    </div>
+                    <div class="input-group">
+                        <label>Approval (Manager Name)</label>
+                        <input type="text" name="manager_approval" class="form-control" placeholder="Jane Doe" required>
+                    </div>
+                </div>
+            </details>
+
+            <div style="padding: 10px 0;">
+                <button type="submit" class="btn-access" style="background:var(--metro-yellow); color:#000;" onclick="document.querySelectorAll('#form-audit-trip details').forEach(d => d.open = true);">SUBMIT TRIP VALIDATION</button>
+            </div>
+        </form>
+    </section>
+
+    <!-- NEW FORM: Duplicate Register -->
+    <section id="form-register-duplicate" class="container hidden">
+        <div class="nav-back" onclick="showModule('screen-register')">← Back to Registers</div>
+        <h2 style="margin-bottom: 24px;">🗂️ Duplicate Register</h2>
+        <form class="glass form-box animate-in" onsubmit="submitForm(event, 'Duplicate_Register')">
+            <div class="input-group">
+                <label>Check by LPA Name</label>
+                <input type="text" id="dup_lpa_name" name="lpa_name" class="form-control" readonly style="color: var(--slp-cyan);">
+            </div>
+            <div class="input-group">
+                <label>Date</label>
+                <input type="date" id="dup_date" name="date" class="form-control" required>
+            </div>
+            <div class="grid-2">
+                <div class="input-group">
+                    <label>As Per System Qty</label>
+                    <input type="number" id="dup_sys_qty" name="sys_qty" class="form-control" required oninput="calcDuplicate()">
+                </div>
+                <div class="input-group">
+                    <label>Register Update Qty</label>
+                    <input type="number" id="dup_reg_qty" name="reg_qty" class="form-control" required oninput="calcDuplicate()">
+                </div>
+            </div>
+            <div class="input-group">
+                <label>Different Qty (Auto)</label>
+                <input type="number" id="dup_diff_qty" name="diff_qty" class="form-control" readonly style="background: rgba(0,0,0,0.5);">
+            </div>
+            <div class="input-group">
+                <label>Not Update Value (₹)</label>
+                <input type="number" step="0.01" id="dup_val" name="not_update_value" class="form-control" placeholder="Enter Value Amount" required>
+            </div>
+            <div class="input-group">
+                <label>Remarks</label>
+                <input type="text" name="remarks" class="form-control" placeholder="Add any notes...">
+            </div>
+            <button type="submit" class="btn-access">LOG DUPLICATE</button>
+        </form>
+    </section>
+
+    <!-- NEW FORM: CN Register -->
+    <section id="form-register-cn" class="container hidden">
+        <div class="nav-back" onclick="showModule('screen-register')">← Back to Registers</div>
+        <h2 style="margin-bottom: 24px;">💳 CN Register</h2>
+        <form class="glass form-box animate-in" onsubmit="submitForm(event, 'CN_Register')">
+            <div class="input-group">
+                <label>Check by LPA Name</label>
+                <input type="text" id="cn_lpa_name" name="lpa_name" class="form-control" readonly style="color: var(--slp-cyan);">
+            </div>
+            <div class="input-group">
+                <label>Date</label>
+                <input type="date" id="cn_date" name="date" class="form-control" required>
+            </div>
+            <div class="grid-2">
+                <div class="input-group">
+                    <label>As Per System Qty</label>
+                    <input type="number" id="cn_sys_qty" name="sys_qty" class="form-control" required oninput="calcCN()">
+                </div>
+                <div class="input-group">
+                    <label>Register Update Qty</label>
+                    <input type="number" id="cn_reg_qty" name="reg_qty" class="form-control" required oninput="calcCN()">
+                </div>
+            </div>
+            <div class="input-group">
+                <label>Different Qty (Auto)</label>
+                <input type="number" id="cn_diff_qty" name="diff_qty" class="form-control" readonly style="background: rgba(0,0,0,0.5);">
+            </div>
+            <div class="input-group">
+                <label>Not Update Value (₹)</label>
+                <input type="number" step="0.01" id="cn_val" name="not_update_value" class="form-control" placeholder="Enter Value Amount" required>
+            </div>
+            <div class="input-group">
+                <label>Remarks</label>
+                <input type="text" name="remarks" class="form-control" placeholder="Add any notes...">
+            </div>
+            <button type="submit" class="btn-access" style="background:var(--metro-yellow); color:#000;">LOG CN ENTRY</button>
+        </form>
+    </section>
+
+<!-- NEW FORM: Daily Dispatch & Delivery Summary -->
+    <section id="form-register-dispatch" class="container hidden">
+        <div class="nav-back" onclick="showModule('screen-register')">← Back to Registers</div>
+        <h2 style="margin-bottom: 24px;">📈 Daily Dispatch Summary</h2>
+        <form class="glass form-box animate-in" onsubmit="submitForm(event, 'Daily_Summary')" style="padding: 10px;">
+            
+            <details class="form-section" open>
+                <summary>1. Basic Details</summary>
+                <div class="section-content">
+                    <div class="input-group">
+                        <label>LPA Name</label>
+                        <input type="text" id="disp_lpa_name" name="lpa_name" class="form-control" readonly required style="color:var(--slp-cyan);">
+                    </div>
+                    <div class="grid-2">
+                        <div class="input-group"><label>Date</label><input type="date" id="disp_date" name="date" class="form-control" required></div>
+                        <div class="input-group"><label>Time</label><input type="time" id="disp_time" name="time" class="form-control" required></div>
+                    </div>
+                </div>
+            </details>
+
+            <details class="form-section">
+                <summary>2. Dispatch Summary</summary>
+                <div class="section-content">
+                    <div class="grid-2">
+                        <div class="input-group"><label>Trips Despatched</label><input type="number" name="trips_desp" class="form-control" required></div>
+                        <div class="input-group"><label>Vehicles Despatched</label><input type="number" name="veh_desp" class="form-control" required></div>
+                    </div>
+                    <div class="grid-2">
+                        <div class="input-group"><label>Orders Despatched</label><input type="number" name="orders_desp" class="form-control" required></div>
+                        <div class="input-group"><label>Total Trip Value (₹)</label><input type="number" step="0.01" name="trip_value" class="form-control" required></div>
+                    </div>
+                </div>
+            </details>
+
+            <details class="form-section">
+                <summary>3. Delivery Summary</summary>
+                <div class="section-content grid-2">
+                    <div class="input-group"><label>Orders Delivered</label><input type="number" name="orders_del" class="form-control" required></div>
+                    <div class="input-group"><label>Delivered Invoice Value (₹)</label><input type="number" step="0.01" name="invoice_val" class="form-control" required></div>
+                </div>
+            </details>
+
+            <details class="form-section">
+                <summary>4. Cash Handling</summary>
+                <div class="section-content">
+                    <div class="grid-2">
+                        <div class="input-group"><label>Orders Del. via Cash</label><input type="number" name="cash_orders" class="form-control" required></div>
+                        <div class="input-group"><label>Cash Value (₹)</label><input type="number" step="0.01" name="cash_value" class="form-control" required></div>
+                    </div>
+                    <div class="grid-2">
+                        <div class="input-group"><label>Cash Collected by DA</label><input type="number" step="0.01" id="disp_cash_coll" name="cash_coll" class="form-control" required oninput="calcDispatch()"></div>
+                        <div class="input-group"><label>Cash Submitted by DA</label><input type="number" step="0.01" id="disp_cash_sub" name="cash_sub" class="form-control" required oninput="calcDispatch()"></div>
+                    </div>
+                    <div class="input-group">
+                        <label>Variance in Cash (Auto)</label>
+                        <input type="text" id="disp_cash_var" name="cash_var" class="form-control" readonly style="background: rgba(0,0,0,0.5);">
+                    </div>
+                    <div class="input-group conditional-field" id="disp_cash_reason_div">
+                        <label style="color:var(--alert-red);">Reason for Cash Variance</label>
+                        <input type="text" id="disp_cash_reason" name="cash_reason" class="form-control" placeholder="Explain the discrepancy...">
+                    </div>
+                </div>
+            </details>
+
+            <details class="form-section">
+                <summary>5. UPI Handling</summary>
+                <div class="section-content">
+                    <div class="grid-2">
+                        <div class="input-group"><label>Orders Del. via UPI</label><input type="number" name="upi_orders" class="form-control" required></div>
+                        <div class="input-group"><label>UPI Value (₹)</label><input type="number" step="0.01" name="upi_value" class="form-control" required></div>
+                    </div>
+                    <div class="input-group">
+                        <label>UPI Payment Reflection Issues (Value)</label>
+                        <input type="text" name="upi_issues" class="form-control" placeholder="Any manual mismatch..." required>
+                    </div>
+                </div>
+            </details>
+
+            <details class="form-section">
+                <summary>6. PIS Status</summary>
+                <div class="section-content">
+                    <div class="input-group">
+                        <label>Is PIS Created?</label>
+                        <select id="disp_pis_stat" name="pis_stat" class="form-control" required onchange="calcDispatch()">
+                            <option value="">Select</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </select>
+                    </div>
+                    <div class="input-group conditional-field" id="disp_pis_reason_div">
+                        <label style="color:var(--alert-red);">Reason for No PIS</label>
+                        <input type="text" id="disp_pis_reason" name="pis_reason" class="form-control" placeholder="Explain why...">
+                    </div>
+                </div>
+            </details>
+
+            <details class="form-section">
+                <summary>7. Re-Attempt Orders</summary>
+                <div class="section-content grid-2">
+                    <div class="input-group"><label>Re-Attempt Orders</label><input type="number" name="reattempt_ord" class="form-control" required></div>
+                    <div class="input-group"><label>Re-Attempt Value (₹)</label><input type="number" step="0.01" name="reattempt_val" class="form-control" required></div>
+                </div>
+            </details>
+
+            <details class="form-section">
+                <summary>8. Returns (DSR & Partial)</summary>
+                <div class="section-content">
+                    <div class="grid-2">
+                        <div class="input-group"><label>Full Return Orders (DSR)</label><input type="number" name="ret_full_ord" class="form-control" required></div>
+                        <div class="input-group"><label>Full Return Value (₹)</label><input type="number" step="0.01" name="ret_full_val" class="form-control" required></div>
+                    </div>
+                    <div class="grid-2">
+                        <div class="input-group"><label>Partial Return Orders</label><input type="number" name="ret_part_ord" class="form-control" required></div>
+                        <div class="input-group"><label>Articles Partially Ret.</label><input type="number" name="ret_part_art" class="form-control" required></div>
+                    </div>
+                    <div class="grid-2">
+                        <div class="input-group"><label>Partial Cash Collected</label><input type="number" step="0.01" name="ret_part_cash_coll" class="form-control" required></div>
+                        <div class="input-group"><label>Partial Cash Submitted</label><input type="number" step="0.01" name="ret_part_cash_sub" class="form-control" required></div>
+                    </div>
+                    <div class="grid-2">
+                        <div class="input-group"><label>Partial UPI Received</label><input type="number" step="0.01" name="ret_part_upi" class="form-control" required></div>
+                        <div class="input-group"><label>Partial Returns Val. (₹)</label><input type="number" step="0.01" name="ret_part_val" class="form-control" required></div>
+                    </div>
+                </div>
+            </details>
+
+            <details class="form-section">
+                <summary>9. Return Variance</summary>
+                <div class="section-content">
+                    <div class="grid-2">
+                        <div class="input-group"><label>Return Orders Var.</label><input type="number" id="disp_ret_var_count" name="ret_var_count" class="form-control" required oninput="calcDispatch()"></div>
+                        <div class="input-group"><label>Return Order Var. (₹)</label><input type="number" step="0.01" id="disp_ret_var_val" name="ret_var_val" class="form-control" required oninput="calcDispatch()"></div>
+                    </div>
+                    <div class="input-group conditional-field" id="disp_ret_reason_div">
+                        <label style="color:var(--alert-red);">Reason for Variance</label>
+                        <input type="text" id="disp_ret_reason" name="ret_var_reason" class="form-control" placeholder="Explain discrepancy...">
+                    </div>
+                </div>
+            </details>
+
+            <details class="form-section">
+                <summary>10. Validation & CN</summary>
+                <div class="section-content">
+                    <div class="input-group">
+                        <label>Validation Completed?</label>
+                        <select id="disp_val_stat" name="val_stat" class="form-control" required onchange="calcDispatch()">
+                            <option value="">Select</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </select>
+                    </div>
+                    <div class="input-group conditional-field" id="disp_val_reason_div">
+                        <label style="color:var(--alert-red);">Reason for No Validation</label>
+                        <input type="text" id="disp_val_reason" name="val_reason" class="form-control" placeholder="Why pending?">
+                    </div>
+                    <div class="input-group">
+                        <label>CN Created?</label>
+                        <select id="disp_cn_stat" name="cn_stat" class="form-control" required onchange="calcDispatch()">
+                            <option value="">Select</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </select>
+                    </div>
+                    <div class="input-group conditional-field" id="disp_cn_reason_div">
+                        <label style="color:var(--alert-red);">Reason for No CN</label>
+                        <input type="text" id="disp_cn_reason" name="cn_reason" class="form-control" placeholder="Why NO CN?">
+                    </div>
+                </div>
+            </details>
+
+            <div style="padding: 10px 0;">
+                <button type="submit" class="btn-access" style="background:var(--slp-cyan); color:#000;" onclick="document.querySelectorAll('#form-register-dispatch details').forEach(d => d.open = true);">SAVE DISPATCH SUMMARY</button>
+            </div>
+        </form>
+    </section>
+
+    <!-- Scanner Modal Overlay -->
+    <div id="scanner-modal" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:9999; display:none; flex-direction:column; align-items:center; justify-content:center;">
+        <h3 style="color:var(--slp-cyan); margin-bottom: 20px; font-weight:700; font-size: 24px;">Scan Barcode Matrix</h3>
+        <p style="color:var(--text-dim); margin-bottom: 20px; font-size:13px; text-align:center;">Point your camera at the barcode/QR code</p>
+        
+        <div id="reader-container" style="background:#000; padding:10px; border-radius:15px; border:2px solid var(--metro-yellow); overflow:hidden;">
+            <div id="reader" style="width: 300px; height: 300px;"></div>
+        </div>
+
+        <button onclick="closeScanner()" class="btn-access" style="width: 250px; margin-top: 30px; background:var(--alert-red); color:#fff; font-weight:800;">❌ CANCEL SCANNER</button>
+    </div>
+
+    <!-- Link to external JS -->
+    <script src="script.js"></script>
+</body>
+</html>
