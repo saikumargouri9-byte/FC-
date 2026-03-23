@@ -60,6 +60,15 @@ function doPost(e) {
 }
 
 function doGet(e) {
+  // 1. Serve UI if No parameters (Web App Entry)
+  if (!e.parameter.action && !e.parameter.ean && !e.parameter.user) {
+    return HtmlService.createTemplateFromFile('index')
+        .evaluate()
+        .setTitle('Metro Store Pro - Dashboard')
+        .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL)
+        .addMetaTag('viewport', 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no');
+  }
+
   const ss = SpreadsheetApp.openById(SHEET_ID);
   const action = e.parameter.action;
   
@@ -99,41 +108,43 @@ function doGet(e) {
         .setMimeType(ContentService.MimeType.JSON);
   }
 
-  // 1.5 OUTWARD DASHBOARD STATS
+  // 1.1 OUTWARD STATS (FOR DASHBOARD)
   if (action === 'getOutwardStats') {
-    const sDate = e.parameter.start_date;
-    const eDate = e.parameter.end_date;
+    const sDate = e.parameter.start_date || new Date().toISOString().split('T')[0];
+    const eDate = e.parameter.end_date || sDate;
     
-    const sheetsToCheck = ['Return_To_Vendor', 'STOs', 'Second_Sales', 'Jiomart_Outward'];
-    let totalVehicles = 0;
+    let totalOutwardVehicles = 0;
     let totalTrips = 0;
-    let totalValue = 0;
+    let totalOutwardValue = 0;
 
-    sheetsToCheck.forEach(sheetName => {
-      const sheet = ss.getSheetByName(sheetName);
+    const sheets = ['Return_To_Vendor', 'STOs', 'Second_Sales', 'Jiomart_Outward'];
+    sheets.forEach(name => {
+      const sheet = ss.getSheetByName(name);
       if (sheet) {
         const data = sheet.getDataRange().getValues();
-        const headers = data[0] || [];
+        const headers = (data[0] || []).map(h => String(h).toLowerCase());
         
-        const valIdx = headers.indexOf('total_value');
-        const tripsIdx = headers.indexOf('num_trips');
-        
+        let valIdx = -1;
+        if (headers.includes('total_value')) valIdx = headers.indexOf('total_value');
+        else if (headers.includes('trip_value')) valIdx = headers.indexOf('trip_value');
+
+        let tripIdx = -1;
+        if (headers.includes('total_trips')) tripIdx = headers.indexOf('total_trips');
+        else if (headers.includes('trip_id')) tripIdx = headers.indexOf('trip_id');
+
         for (let i = 1; i < data.length; i++) {
           const rawTimestamp = data[i][0];
           
           if (!sDate || isDateInRange(rawTimestamp, sDate, eDate)) {
-              totalVehicles++;
+              totalOutwardVehicles++;
               
-              if (valIdx > -1) {
-                 const val = parseFloat(data[i][valIdx]);
-                 if (!isNaN(val)) totalValue += val;
+              if (tripIdx > -1 && data[i][tripIdx]) {
+                totalTrips++;
               }
               
-              if (sheetName === 'Jiomart_Outward' && tripsIdx > -1) {
-                 const trips = parseInt(data[i][tripsIdx]);
-                 if (!isNaN(trips)) totalTrips += trips;
-              } else {
-                 totalTrips += 1;
+              if (valIdx > -1) {
+                const val = parseFloat(data[i][valIdx]);
+                if (!isNaN(val)) totalOutwardValue += val;
               }
           }
         }
@@ -142,26 +153,26 @@ function doGet(e) {
 
     return ContentService.createTextOutput(JSON.stringify({
       status: 'success',
-      vehicles: totalVehicles,
+      vehicles: totalOutwardVehicles,
       trips: totalTrips,
-      value: totalValue
+      value: totalOutwardValue
     })).setMimeType(ContentService.MimeType.JSON);
   }
 
-  // 1.9 INWARD KPI STATS
+  // 1.2 INWARD STATS (FOR DASHBOARD)
   if (action === 'getInwardStats') {
-    const sDate = e.parameter.start_date;
-    const eDate = e.parameter.end_date;
+    const sDate = e.parameter.start_date || new Date().toISOString().split('T')[0];
+    const eDate = e.parameter.end_date || sDate;
     
     let totalInwardVehicles = 0;
     let totalInwardValue = 0;
-    const inwardSheets = ['Vehicle_Inbound', 'Material_Inward', 'Diesel_Water_Inward', 'Imprest_Inward'];
 
-    inwardSheets.forEach(sheetName => {
-      const sheet = ss.getSheetByName(sheetName);
+    const sheets = ['Vehicle_Inbound', 'Material_Inward', 'Diesel_Water_Inward', 'Imprest_Inward'];
+    sheets.forEach(name => {
+      const sheet = ss.getSheetByName(name);
       if (sheet) {
         const data = sheet.getDataRange().getValues();
-        const headers = data[0] || [];
+        const headers = (data[0] || []).map(h => String(h).toLowerCase());
         
         let valIdx = -1;
         if (headers.includes('inv_value')) valIdx = headers.indexOf('inv_value');
@@ -296,28 +307,21 @@ function doGet(e) {
   // 2. EAN LOOKUP ACTION
   const ean = e.parameter.ean;
   if (ean) {
-    // Try multiple possible names for the master sheet
-    const masterSheet = ss.getSheetByName('MasterData') || ss.getSheetByName('Master') || ss.getSheetByName('Master Sheet') || ss.getSheetByName('EAN');
-    
-    if (!masterSheet) {
-      return ContentService.createTextOutput(JSON.stringify({status: 'error', message: 'Master sheet missing'}))
+    const targetEan = String(ean).trim();
+    const eanSheet = ss.getSheetByName('EAN');
+    if (!eanSheet) {
+      return ContentService.createTextOutput(JSON.stringify({status: 'error', message: 'EAN Sheet missing'}))
           .setMimeType(ContentService.MimeType.JSON);
     }
-    
-    const data = masterSheet.getDataRange().getValues();
-    const targetEan = String(ean).trim();
-    
-    // Assuming Column A (data[0]) = EAN Code
+    const data = eanSheet.getDataRange().getValues();
     for (let i = 1; i < data.length; i++) {
-        // Force rigorous type strings to prevent cell numerical formatting errors
         const currentEan = String(data[i][0]).split('.')[0].trim(); 
-        
         if (currentEan === targetEan) {
         return ContentService.createTextOutput(JSON.stringify({
           status: 'success',
-          article: data[i][1] || '',  // Column B -> Article Code
-          desc: data[i][2] || '',     // Column C -> Description
-          map: data[i][3] || 0        // Column D -> MAP Price
+          article: data[i][1] || '',
+          desc: data[i][2] || '',
+          map: data[i][3] || 0
         })).setMimeType(ContentService.MimeType.JSON);
       }
     }
